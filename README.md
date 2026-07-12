@@ -39,7 +39,8 @@ python -m scripts.evaluate_detector_b
 ## Output
 
 Each script plots:
-    - L1 error between detection and GT.
-    - IoT of the segmentation predicted and the GT mask.
-    - Frames with predicted detection, segmentation and GT.
+
+- L1 error between detection and GT.
+- IoU of the predicted segmentation and the GT mask.
+- Frames with predicted detection, segmentation, and GT.
 
