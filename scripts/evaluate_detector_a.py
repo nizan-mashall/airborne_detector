@@ -2,7 +2,7 @@ from dataloader.loader import DataLoader
 from detector_a.contrast_based_detector import ContrastBasedDetector
 from evaluation.evaluate import evaluate_detector, plot_l1_curve, plot_gt_vs_pred, plot_IoU_curve
 
-video_name = "video2"
+video_name = "video1"
 loader = DataLoader(video_name)
 frames, lo, hi = loader.load_frames()
 df = loader.load_csv()

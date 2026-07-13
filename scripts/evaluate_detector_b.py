@@ -5,7 +5,7 @@ from dataloader.loader import DataLoader
 from detector_b.temporal_residual_detector import TemporalResidualDetector
 from evaluation.evaluate import evaluate_detector, plot_l1_curve, plot_gt_vs_pred, plot_IoU_curve
 
-video_name = "video2"
+video_name = "video1"
 loader = DataLoader(video_name)
 frames, lo, hi = loader.load_frames()
 df = loader.load_csv()
@@ -19,7 +19,7 @@ detector = TemporalResidualDetector(
 )
 
 l1_list, idx_list, mean_l1, gt_list, pred_list, IoU_list, mask_list = evaluate_detector(
-    detector, frames, df, ref_files, start_idx=700, end_idx=750, step=1
+    detector, frames, df, ref_files, start_idx=15, end_idx=len(frames)-1, step=1
 )
 
 idx_frames=[710, 720, 730, 740, 745, 749]
