@@ -9,6 +9,10 @@ class SimpleHistoryTracker:
         self.history = deque(maxlen=history_length)
         self.outlier_reject_radius = outlier_reject_radius
 
+    ''' Estimate the position of the target in the current frame based on the history of previous detections.
+        After using homography to transform previous detections to the current frame.
+    '''
+
     def estimate_position(self, frames, frame_idx, lo, hi, min_inliers_to_trust=30):
         if len(self.history) == 0:
             return None, None, None, 0

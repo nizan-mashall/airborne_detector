@@ -13,18 +13,13 @@ def detect_via_gap_consensus_simple_history(frames, frame_idx, lo, hi, gap_candi
                                               history_tracker=None, contour_threshold_percentile=90,
                                               contour_max_area=100000, max_reject_distance=80,
                                               min_history_points_to_enforce=2):
-    """
-    Same as before, but if the history-based rejection would eliminate
-    EVERY candidate, falls back to using the full (unrejected) candidate
-    set instead of returning "no detection" -- rejection is a preference,
-    not an absolute veto when it would leave nothing to choose from.
-    """
+
     f_ref = normalize_frame(frames[frame_idx], lo, hi)
     candidate_detections = []
 
     threshold_val = np.percentile(f_ref, contour_threshold_percentile)
     binary = (f_ref > threshold_val).astype(np.uint8) * 255
-    contours, hierarchy = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = [c for c in contours if cv2.contourArea(c) <= contour_max_area]
 
     for gap in gap_candidates:
@@ -83,7 +78,6 @@ def detect_via_gap_consensus_simple_history(frames, frame_idx, lo, hi, gap_candi
     if len(candidate_detections) == 0:
         return (-1, -1), None, None, 0
 
-    # --- History expectation ---
     expected_x, expected_y, spread, n_inlier_history = (None, None, None, 0)
     if history_tracker is not None:
         expected_x, expected_y, spread, n_inlier_history = history_tracker.estimate_position(
@@ -92,14 +86,12 @@ def detect_via_gap_consensus_simple_history(frames, frame_idx, lo, hi, gap_candi
 
     enforce_rejection = (expected_x is not None and n_inlier_history >= min_history_points_to_enforce)
 
-    # --- Try rejection first, but fall back to the FULL set if it removes everything ---
     final_candidates = candidate_detections
     if enforce_rejection:
         filtered = [d for d in candidate_detections
                     if np.hypot(d['x'] - expected_x, d['y'] - expected_y) <= max_reject_distance]
         if len(filtered) > 0:
             final_candidates = filtered
-        # else: nothing survived rejection -> keep using the FULL candidate set (no change)
 
     positions = np.array([[d['x'], d['y']] for d in final_candidates])
     clustering = DBSCAN(eps=agreement_radius, min_samples=1).fit(positions)

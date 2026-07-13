@@ -1,7 +1,10 @@
 import cv2
 import numpy as np
 from sklearn.cluster import DBSCAN
-
+''' Calculate the homography matrix between two frames using ORB feature, 
+    matching and calculate motion vectors, then use DBSCAN clustering to avoid using target 
+    features for homography estimation. 
+'''
 
 def estimate_homography_motion_clustered(frame_ref, frame_moving, max_features=2000,
                                            good_match_percent=0.3, eps=2.0, min_samples=8):

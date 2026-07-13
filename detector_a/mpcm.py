@@ -63,8 +63,8 @@ def detect_from_mpcm(mpcm_map, threshold=None, threshold_std_factor=6):
         comp_mask = labeled == comp_id
         ys, xs = np.where(comp_mask)
         centroid_x, centroid_y = xs.mean(), ys.mean()
-        confidence = mpcm_map[comp_mask].max()  / mpcm_map.max()
-        #confidence = mpcm_map[comp_mask].max()
+        #confidence = mpcm_map[comp_mask].max()  / mpcm_map.max()
+        confidence = mpcm_map[comp_mask].max()
         area = comp_mask.sum()
         detections.append({'x': centroid_x, 'y': centroid_y, 'confidence': confidence,
                     'area': area, 'mask': comp_mask})

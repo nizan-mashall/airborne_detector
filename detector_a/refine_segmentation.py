@@ -13,6 +13,10 @@ import numpy as np
 
 def refine_segmentation(norm_frame, mask, threshold_percentile=90, iou_threshold=0.1,
                          border_width=20):
+    '''
+    Refine the segmentation mask by finding the best matching contour in the normalized frame.
+    Required because the MPCM averaging and big object masking might preduce sparce results.
+    '''
 
     if mask is None or mask.sum() == 0:
         return mask
