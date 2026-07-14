@@ -26,13 +26,13 @@ def compute_iou(pred_mask, gt_mask):
 
 def evaluate_detector(detector, frames, df, ref_images_list, start_idx=10, end_idx=None, step=1):
 
-    l1_list, idx_list, gt_list, pred_list, IoU_list, mask_list = [], [], [], [], [], []
+    l1_list, idx_list, gt_list, pred_list, IoU_list, mask_list, conf_list = [], [], [], [], [], [], []
 
     for frame_idx in tqdm(range(start_idx, end_idx, step), desc=detector.__class__.__name__):
         gt_x = df.loc[frame_idx, 'X_t(pixels)']
         gt_y = df.loc[frame_idx, 'Y_t(pixels)']
 
-        (det_x, det_y), final_mask, _ = detector.predict(frames, frame_idx)
+        (det_x, det_y), final_mask, conf = detector.predict(frames, frame_idx)
 
         l1 = (abs(gt_x - det_x) + abs(gt_y - det_y)) / 2
 
@@ -45,10 +45,10 @@ def evaluate_detector(detector, frames, df, ref_images_list, start_idx=10, end_i
         gt_list.append((gt_x, gt_y))
         pred_list.append((det_x, det_y))
         mask_list.append((gt_mask, final_mask))
-
+        conf_list.append(conf)
     mean_l1 = np.mean(l1_list)
 
-    return l1_list, idx_list, mean_l1, gt_list, pred_list, IoU_list, mask_list
+    return l1_list, idx_list, mean_l1, gt_list, pred_list, IoU_list, mask_list,conf_list
 
 
 def plot_l1_curve(l1_list, idx_list, title="L1 error vs. frame index"):
@@ -116,4 +116,38 @@ def plot_IoU_curve(IoU_list, idx_list):
     plt.legend()
     plt.show()
 
-
+def save_detection_video(frames, idx_list, pred_list, conf_list, mask_list, lo, hi, output_path,
+                          fps=15, contour_color=(0, 0, 255), point_color=(0, 255, 0),
+                          show_frame_idx=True):
+  
+    if len(idx_list) == 0:
+        raise ValueError("idx_list is empty - nothing to write.")
+ 
+    h, w = frames[idx_list[0]].shape
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    writer = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
+ 
+    for pos, frame_idx in enumerate(idx_list):
+        norm_frame = normalize_frame(frames[frame_idx], lo, hi)
+        frame_bgr = cv2.cvtColor(norm_frame, cv2.COLOR_GRAY2BGR)
+ 
+        _, pred_mask = mask_list[pos]
+        pred_x, pred_y = pred_list[pos]
+ 
+        if pred_mask is not None:
+            mask_u8 = pred_mask.astype(np.uint8) * 255
+            contours, _ = cv2.findContours(mask_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(frame_bgr, contours, -1, contour_color, 1)
+ 
+        if pred_x != -1 and pred_y != -1:
+            cv2.drawMarker(frame_bgr, (int(round(pred_x)), int(round(pred_y))),
+                            point_color, markerType=cv2.MARKER_CROSS, markerSize=10, thickness=1)
+ 
+        if show_frame_idx:
+            cv2.putText(frame_bgr, f"Frame {frame_idx}", (10, 20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+ 
+        writer.write(frame_bgr)
+ 
+    writer.release()
+    print(f"Saved video with {len(idx_list)} frames to {output_path}")

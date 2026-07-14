@@ -2,6 +2,11 @@
 
 Detects an airborne target in fixed-mount camera video, with two independent detection algorithms sharing the same evaluation pipeline.
 
+
+<p align="center">
+  <img src="video_sample/contrast_detector_sample.gif" width="600" alt="Contrast Detector Demo"/>
+</p>
+
 ## Setup
 
 ```powershell
